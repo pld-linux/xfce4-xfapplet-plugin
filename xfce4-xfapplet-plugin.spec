@@ -1,5 +1,5 @@
 Summary:	XfApplet plugin allows to use GNOME panel applets inside the Xfce panel
-Summary(pl):	Wtyczka XfApplet umo¿liwia u¿ywanie apletów panelu GNOME wewn±trz panelu Xfce
+Summary(pl):	Wtyczka XfApplet pozwalaj±ca na u¿ywanie apletów panelu GNOME wewn±trz panelu Xfce
 Name:		xfce4-xfapplet-plugin
 Version:	0.1.0
 Release:	2
