@@ -1,0 +1,244 @@
+diff -ur xfce4-xfapplet-plugin-0.1.0-orig/config.h.in xfce4-xfapplet-plugin-0.1.0/config.h.in
+--- xfce4-xfapplet-plugin-0.1.0-orig/config.h.in	2006-04-30 17:49:29.000000000 +0200
++++ xfce4-xfapplet-plugin-0.1.0/config.h.in	2011-03-01 13:53:08.000000000 +0100
+@@ -63,6 +63,10 @@
+ /* Define to 1 if you have the <unistd.h> header file. */
+ #undef HAVE_UNISTD_H
+ 
++/* Define to the sub-directory in which libtool stores uninstalled libraries.
++   */
++#undef LT_OBJDIR
++
+ /* Name of package */
+ #undef PACKAGE
+ 
+@@ -78,6 +82,9 @@
+ /* Define to the one symbol short name of this package. */
+ #undef PACKAGE_TARNAME
+ 
++/* Define to the home page for this package. */
++#undef PACKAGE_URL
++
+ /* Define to the version of this package. */
+ #undef PACKAGE_VERSION
+ 
+@@ -87,19 +94,34 @@
+ /* Define to 1 if you have the ANSI C header files. */
+ #undef STDC_HEADERS
+ 
++/* Enable extensions on AIX 3, Interix.  */
++#ifndef _ALL_SOURCE
++# undef _ALL_SOURCE
++#endif
++/* Enable GNU extensions on systems that have them.  */
++#ifndef _GNU_SOURCE
++# undef _GNU_SOURCE
++#endif
++/* Enable threading extensions on Solaris.  */
++#ifndef _POSIX_PTHREAD_SEMANTICS
++# undef _POSIX_PTHREAD_SEMANTICS
++#endif
++/* Enable extensions on HP NonStop.  */
++#ifndef _TANDEM_SOURCE
++# undef _TANDEM_SOURCE
++#endif
++/* Enable general extensions on Solaris.  */
++#ifndef __EXTENSIONS__
++# undef __EXTENSIONS__
++#endif
++
++
+ /* Version number of package */
+ #undef VERSION
+ 
+ /* Define to 1 if the X Window System is missing or not being used. */
+ #undef X_DISPLAY_MISSING
+ 
+-/* Define to 1 if on AIX 3.
+-   System headers sometimes define this.
+-   We just want to avoid a redefinition error message.  */
+-#ifndef _ALL_SOURCE
+-# undef _ALL_SOURCE
+-#endif
+-
+ /* Define to 1 if on MINIX. */
+ #undef _MINIX
+ 
+diff -ur xfce4-xfapplet-plugin-0.1.0-orig/configure.ac xfce4-xfapplet-plugin-0.1.0/configure.ac
+--- xfce4-xfapplet-plugin-0.1.0-orig/configure.ac	2006-04-30 17:48:50.000000000 +0200
++++ xfce4-xfapplet-plugin-0.1.0/configure.ac	2011-03-01 13:53:04.258063513 +0100
+@@ -57,7 +57,7 @@
+ AC_SUBST([LIBXFCE4PANEL_LOCALE_DIR])
+ 
+ XDT_CHECK_PACKAGE([LIBXFCE4UTIL], [libxfce4util-1.0], [4.2.0])
+-XDT_CHECK_PACKAGE([LIBXFCEGUI4], [libxfcegui4-1.0], [4.2.0])
++XDT_CHECK_PACKAGE([LIBXFCE4UI], [libxfce4ui-1], [4.8.0])
+ 
+ dnl check for debugging support
+ XDT_FEATURE_DEBUG
+diff -ur xfce4-xfapplet-plugin-0.1.0-orig/panel-plugin/chooser.c xfce4-xfapplet-plugin-0.1.0/panel-plugin/chooser.c
+--- xfce4-xfapplet-plugin-0.1.0-orig/panel-plugin/chooser.c	2006-04-30 14:52:05.000000000 +0200
++++ xfce4-xfapplet-plugin-0.1.0/panel-plugin/chooser.c	2011-03-01 20:50:39.533484551 +0100
+@@ -25,7 +25,7 @@
+ #include <gconf/gconf-client.h>
+ #include <bonobo/bonobo-exception.h>
+ #include <bonobo-activation/bonobo-activation.h>
+-#include <libxfcegui4/libxfcegui4.h>
++#include <libxfce4ui/libxfce4ui.h>
+ #include "xfapplet.h"
+ 
+ static const char applets_requirements [] =
+@@ -416,7 +416,7 @@
+ {
+ 	XfAppletChooserDialog	*chooser;
+ 	GtkWidget		*dialog, *label, *scroll, *ok_button,
+-				*tv, *img, *header, *hbox, *info_label;
++				*tv, *img, *hbox, *info_label;
+ 	GtkBox			*vbox;
+ 	GtkTreeViewColumn	*col;
+ 	GtkTreeSelection	*sel;
+@@ -441,7 +441,7 @@
+ 	chooser->xap = xap;
+ 
+ 	/* creation of the dialog */
+-	dialog = gtk_dialog_new_with_buttons (_("XfApplet"),
++	dialog = xfce_titled_dialog_new_with_buttons (_("XfApplet"),
+ 					      GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (plugin))),
+ 					      GTK_DIALOG_DESTROY_WITH_PARENT|GTK_DIALOG_NO_SEPARATOR,
+ 					      GTK_STOCK_CANCEL,
+@@ -460,10 +460,7 @@
+ 	gtk_container_set_border_width (GTK_CONTAINER (vbox), 6);
+ 	gtk_box_set_spacing (vbox, 8);
+ 
+-	/* dialog header */
+-	img = gtk_image_new_from_icon_name ("xfapplet2", GTK_ICON_SIZE_DIALOG);
+-	header = xfce_create_header_with_image (img, _("Choose an applet"));
+-	gtk_box_pack_start (vbox, header, FALSE, FALSE, 0);
++	xfce_titled_dialog_set_subtitle (XFCE_TITLED_DIALOG(dialog), _("Choose an applet"));
+ 
+ 	/* dialog info message */
+ 	hbox = gtk_hbox_new (FALSE, 8);
+diff -ur xfce4-xfapplet-plugin-0.1.0-orig/panel-plugin/Makefile.am xfce4-xfapplet-plugin-0.1.0/panel-plugin/Makefile.am
+--- xfce4-xfapplet-plugin-0.1.0-orig/panel-plugin/Makefile.am	2006-04-30 15:50:00.000000000 +0200
++++ xfce4-xfapplet-plugin-0.1.0/panel-plugin/Makefile.am	2011-03-01 18:41:29.639602403 +0100
+@@ -8,15 +8,15 @@
+ 	trans.c
+ 
+ trans.c: ../AUTHORS
+-	echo -e '#include "xfapplet.h"\n\nXfAppletTranslators translators[] = {' > $@
+-	grep ':' $< | sort | sed -n 's/[ ]*\([a-zA-Z_]*\):[ ]*\(.*\) <\([^>]*\)>/{"\2", "\3", "\1",},/p' >> $@
++	echo -e '#include "xfapplet.h"\n\nconst gchar *translators[] = {' > $@
++	grep ':' $< | sort | sed -n 's/[ ]*\([a-zA-Z_]*\):[ ]*\(.*\) <\([^>]*\)>/{"\2 \3 \1",},/p' >> $@
+ 	echo -e '{NULL,},};\n' >> $@
+ 
+ xfce4_xfapplet_plugin_CFLAGS = \
+ 	@LIBPANELAPPLET_CFLAGS@ \
+ 	@LIBXFCE4PANEL_CFLAGS@ \
+ 	@LIBXFCE4UTIL_CFLAGS@ \
+-	@LIBXFCEGUI4_CFLAGS@ \
++	@LIBXFCE4UI_CFLAGS@ \
+ 	-DDATADIR=\"$(datadir)\" \
+ 	-DPKGDATADIR=\"$(pkgdatadir)\" \
+ 	-DPACKAGE_LOCALE_DIR=\"$(localedir)\" \
+@@ -26,7 +26,7 @@
+ 	@LIBPANELAPPLET_LIBS@ \
+ 	@LIBXFCE4PANEL_LIBS@ \
+ 	@LIBXFCE4UTIL_LIBS@ \
+-	@LIBXFCEGUI4_LIBS@
++	@LIBXFCE4UI_LIBS@
+ 
+ uidir = $(pkgdatadir)/ui
+ ui_DATA = \
+diff -ur xfce4-xfapplet-plugin-0.1.0-orig/panel-plugin/trans.c xfce4-xfapplet-plugin-0.1.0/panel-plugin/trans.c
+--- xfce4-xfapplet-plugin-0.1.0-orig/panel-plugin/trans.c	2006-04-30 15:54:20.000000000 +0200
++++ xfce4-xfapplet-plugin-0.1.0/panel-plugin/trans.c	2011-03-01 18:38:19.941602404 +0100
+@@ -1,7 +1,7 @@
+ #include "xfapplet.h"
+ 
+ XfAppletTranslators translators[] = {
+-{"Stavros Giannouris", "stavrosg2002@freemail.gr", "el",},
++{"Stavros Giannouris stavrosg2002@freemail.gr el",},
+ {"Stephane Roy", "sroy@j2n.net", "fr",},
+ {"SZERVÑC Attila", "sas@321.hu", "hu",},
+ {"Daichi Kawahata", "daichi@xfce.org", "ja",},
+diff -ur xfce4-xfapplet-plugin-0.1.0-orig/panel-plugin/xfapplet.c xfce4-xfapplet-plugin-0.1.0/panel-plugin/xfapplet.c
+--- xfce4-xfapplet-plugin-0.1.0-orig/panel-plugin/xfapplet.c	2006-04-30 14:52:05.000000000 +0200
++++ xfce4-xfapplet-plugin-0.1.0/panel-plugin/xfapplet.c	2011-03-01 18:40:33.684602402 +0100
+@@ -30,8 +30,8 @@
+ #include <bonobo/bonobo-ui-main.h>
+ #include <gconf/gconf-client.h>
+ #include <libxfce4util/libxfce4util.h>
+-#include <libxfce4panel/xfce-panel-plugin.h>
+-#include <libxfcegui4/libxfcegui4.h>
++#include <libxfce4panel/libxfce4panel.h>
++#include <libxfce4ui/libxfce4ui.h>
+ #include "xfapplet.h"
+ 
+ /* Relevant menu items order in the xfce panel popup menu. */
+@@ -468,35 +468,30 @@
+ static void
+ xfapplet_about_dialog (XfcePanelPlugin *plugin, gpointer data)
+ {
+-	XfceAboutInfo	*info;
+-	GtkWidget	*dialog;
+ 	GdkPixbuf	*pixbuf = NULL;
+-	guint		 i;
+-
+-	info = xfce_about_info_new ("XfApplet", VERSION " (r" REVISION ")",
+-				    _("Display Gnome applets on the Xfce4 Panel"),
+-				    XFCE_COPYRIGHT_TEXT ("2006", "Adriano Winter Bess"), XFCE_LICENSE_GPL);
+-	xfce_about_info_set_homepage (info, "http://xfce-goodies.berlios.de");
+-	xfce_about_info_add_credit (info, "Adriano Winter Bess", "awbess@gmail.com", _("Author/Maintainer"));
+-
+-	for (i = 0; translators[i].name != NULL; i++) {
+-		gchar *s;
+-		s = g_strdup_printf (_("Translator (%s)"), translators[i].language);
+-		xfce_about_info_add_credit (info, translators[i].name, translators[i].email, s);
+-		g_free (s);
+-	}
++	const gchar *auth[] = { "Adriano Winter Bess awbess@gmail.com Author/Maintainer",
++				NULL };
+ 
+ 	pixbuf = gdk_pixbuf_new_from_file_at_size (DATADIR "/pixmaps/xfapplet2.svg", 48, 48, NULL);
+-	dialog = xfce_about_dialog_new_with_values (GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (plugin))),
+-						    info, pixbuf);
+-	
+-	xfce_about_info_free (info);
++
++#if !GTK_CHECK_VERSION (2, 18, 0)
++	gtk_about_dialog_set_email_hook (exo_gtk_url_about_dialog_hook, NULL, NULL);
++	gtk_about_dialog_set_url_hook (exo_gtk_url_about_dialog_hook, NULL, NULL);
++#endif
++	gtk_show_about_dialog(NULL,
++			"icon", pixbuf,
++			"program-name", "XfApplet",
++			"license", xfce_get_license_text (XFCE_LICENSE_TEXT_GPL),
++			"version", VERSION " (r" REVISION ")",
++			"comments", _("Display Gnome applets on the Xfce4 Panel"),
++			"website", "http://xfce-goodies.berlios.de",
++			"copyright", "2006 Adriano Winter Bess",
++			"translators", translators,
++			"authors", auth,
++			NULL);
++
+ 	if (pixbuf)
+ 		g_object_unref (pixbuf);
+-
+-	gtk_window_set_position (GTK_WINDOW (dialog), GTK_WIN_POS_CENTER);
+-	g_signal_connect (dialog, "response", G_CALLBACK (xfapplet_about_dialog_response), NULL);
+-	gtk_widget_show (dialog);
+ }
+ 
+ static void
+diff -ur xfce4-xfapplet-plugin-0.1.0-orig/panel-plugin/xfapplet.h xfce4-xfapplet-plugin-0.1.0/panel-plugin/xfapplet.h
+--- xfce4-xfapplet-plugin-0.1.0-orig/panel-plugin/xfapplet.h	2006-04-30 14:52:05.000000000 +0200
++++ xfce4-xfapplet-plugin-0.1.0/panel-plugin/xfapplet.h	2011-03-01 13:53:04.267063512 +0100
+@@ -21,7 +21,7 @@
+ 
+ #include <gtk/gtk.h>
+ #include <bonobo/bonobo-ui-component.h>
+-#include <libxfce4panel/xfce-panel-plugin.h>
++#include <libxfce4panel/libxfce4panel.h>
+ #include <GNOME_Panel.h>
+ 
+ #define XFAPPLET_GCONF_DIR "/apps/xfapplet/"

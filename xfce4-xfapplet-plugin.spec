@@ -2,11 +2,12 @@ Summary:	XfApplet plugin allows to use GNOME panel applets inside the Xfce panel
 Summary(pl.UTF-8):	Wtyczka XfApplet pozwalająca na używanie apletów panelu GNOME wewnątrz panelu Xfce
 Name:		xfce4-xfapplet-plugin
 Version:	0.1.0
-Release:	4
+Release:	5
 License:	GPL v2
 Group:		X11/Applications
 Source0:	http://goodies.xfce.org/releases/xfce4-xfapplet-plugin/%{name}-%{version}.tar.bz2
 # Source0-md5:	6a06c44b18a97626f44a240ad3bc3244
+Patch0:		%{name}-ui.patch
 URL:		http://goodies.xfce.org/projects/panel-plugins/xfce4-xfapplet-plugin
 BuildRequires:	ORBit2-devel >= 1:2.12.5
 BuildRequires:	autoconf >= 2.50
@@ -14,6 +15,7 @@ BuildRequires:	automake
 BuildRequires:	intltool
 BuildRequires:	gnome-panel-devel
 BuildRequires:	libtool
+BuildRequires:	libxfce4ui-devel
 BuildRequires:	pkgconfig
 BuildRequires:	xfce4-dev-tools >= 4.4.0
 BuildRequires:	xfce4-panel-devel >= 4.4.0
@@ -33,6 +35,7 @@ jakie jest w stanie pokazać panel GNOME.
 
 %prep
 %setup -q
+%patch0 -p1
 
 %build
 %{__intltoolize}
